@@ -1,56 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Business Card Uploader</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      background-color: #f9f9f9;
-    }
-    form {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-    label {
-      display: block;
-      margin-bottom: 1rem;
-      font-size: 1.2rem;
-    }
-    input[type="file"] {
-      margin-bottom: 1rem;
-      width: 100%;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 0.8rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
-</head>
-<body>
-  <form action="https://ssss23323.app.n8n.cloud/webhook-test/69a793d4-a376-4820-82de-5c49b2b3bf85" method="post" enctype="multipart/form-data">
-    <label for="file">📸 Upload Business Card</label>
-    <input type="file" name="file" accept="image/*" capture="environment" required />
-    <button type="submit">Upload</button>
-  </form>
-</body>
+<html lang="en" class="bg-gray-50">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="font-sans">
+    <div class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+      <h1 class="text-4xl font-bold text-center text-gray-800">
+        🖼️ Image Extractor Tool
+      </h1>
+
+      <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+        <input
+          type="text"
+          id="urlInput"
+          placeholder="Paste a webpage URL to extract images..."
+          class="w-full md:w-2/3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onclick="extractImages()"
+          class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition"
+        >
+          Extract Images
+        </button>
+      </div>
+
+      <div id="loading" class="text-center text-gray-600 hidden">Extracting...</div>
+
+      <div id="imageList" class="space-y-6"></div>
+    </div>
+
+    <script>
+      async function extractImages() {
+        const url = document.getElementById("urlInput").value.trim();
+        const loading = document.getElementById("loading");
+        const list = document.getElementById("imageList");
+        list.innerHTML = "";
+        loading.classList.remove("hidden");
+
+        if (!url) {
+          alert("Please enter a valid URL");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            "https://ssss23323.app.n8n.cloud/webhook/image-extract",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ url }),
+            }
+          );
+
+          const data = await response.json();
+          const images = data.images || [];
+
+          if (images.length === 0) {
+            list.innerHTML =
+              '<p class="text-center text-red-600">No images found.</p>';
+          } else {
+            images.forEach((src, i) => {
+              const container = document.createElement("div");
+              container.className = "bg-white p-4 rounded-xl shadow";
+
+              const title = document.createElement("p");
+              title.className = "mb-2 text-gray-600 text-sm";
+              title.textContent = `Image ${i + 1}`;
+
+              const img = document.createElement("img");
+              img.src = src;
+              img.className =
+                "w-full h-auto rounded-xl border border-gray-200";
+
+              container.appendChild(title);
+              container.appendChild(img);
+              list.appendChild(container);
+            });
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Failed to extract images.");
+        } finally {
+          loading.classList.add("hidden");
+        }
+      }
+    </script>
+  </body>
 </html>
